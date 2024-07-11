@@ -1,5 +1,5 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
@@ -9,9 +9,6 @@ const port = process.env.PORT || 5000;
 //middleware
 app.use(cors());
 app.use(express.json());
-
-
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4crecgt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -29,47 +26,45 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    //backend 
-    //Service 
-    const serviceCollection = client.db('carRepairCenter').collection('services');
-    const bookingCollection = client.db("carRepairCenter").collection('bookings');
+    //backend
+    //Service
+    const serviceCollection = client
+      .db("carRepairCenter")
+      .collection("services");
+    const bookingCollection = client
+      .db("carRepairCenter")
+      .collection("bookings");
 
-    app.get('/services', async(req,res) =>{
+    app.get("/services", async (req, res) => {
       const cursor = serviceCollection.find();
       const result = await cursor.toArray();
       res.send(result);
-    })
-
-
+    });
 
     //Checkout Service id one
-    app.get('/services/:id', async(req,res) => {
+    app.get("/services/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const options = {
         // Include only the `title` and `imdb` fields in the returned document
-        projection: { title: 1, service_id: 1, price: 1, img: 1 },
+        projection: { title: 1, service_id: 1, price: 1, img: 1,date:1 },
       };
       const result = await serviceCollection.findOne(query, options);
       res.send(result);
-    })
+    });
 
+    //Bookings
 
-    //Bookings 
-
-    app.get('/bookings', async(req,res)=>{
-      console.log(req.query.email);
+    app.get("/bookings", async (req, res) => {
       let query = {};
-      if (req.query?.email){
-        query = {email: req.query.email}
+      if (req.query?.email) {
+        query = { email: req.query.email };
       }
       const result = await bookingCollection.find(query).toArray();
       res.send(result);
+    });
 
-    })
-
-
-    app.post('/bookings', async(req,res)=>{
+    app.post("/bookings", async (req, res) => {
       const booking = req.body;
       console.log(booking);
 
@@ -77,36 +72,28 @@ async function run() {
       res.send(result);
     });
 
-    // update part 
-    app.patch('/bookings/:id', async(req, res) =>{
+    // update part
+    app.patch("/bookings/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updatedBooking = req.body;
       console.log(updatedBooking);
       const updateDoc = {
         $set: {
-          status: updatedBooking.status
+          status: updatedBooking.status,
         },
       };
-      const result =await bookingCollection.updateOne(filter, updateDoc);
+      const result = await bookingCollection.updateOne(filter, updateDoc);
       res.send(result);
-    })
+    });
 
-
-    // Delete part 
-    app.delete('/bookings/:id', async(req, res) =>{
+    // Delete part
+    app.delete("/bookings/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
       res.send(result);
-    })
-    
-
-
-
-
-
-
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -120,11 +107,10 @@ async function run() {
 }
 run().catch(console.dir);
 
-
-app.get('/',(req,res) =>{
-    res.send('doctor is running')
-})
+app.get("/", (req, res) => {
+  res.send("doctor is running");
+});
 
 app.listen(port, () => {
-    console.log(`Car Doctor Server is running on port ${port}`)
-})
+  console.log(`Car Doctor Server is running on port ${port}`);
+});
